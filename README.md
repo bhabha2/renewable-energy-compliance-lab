@@ -34,12 +34,14 @@ The source documents and extracted images are not committed to this repo. They s
 | --- | --- |
 | `ingest_sharepoint_to_search.py` | Pulls SharePoint files, extracts/OCRs text, chunks content, and indexes text into Azure AI Search. |
 | `extract_images_to_search.py` | Extracts embedded PDF/DOCX/PPTX images, renders PDF pages, uploads image assets to SharePoint, runs Vision caption/OCR, and indexes visual records. |
+| `data/` | Visible lab data layout, reference corpus manifest, source/extracted placeholders, and sample reasoning questions. |
 | `reccia-agent-api/` | Azure Function HTTP API that queries both Search indexes and calls Azure OpenAI for grounded reasoning. |
 | `reccia-agent-api/connector/` | Swagger 2.0 and connector properties for Copilot Studio / Power Platform custom connector import. |
 | `scripts/` | Parameterized setup, ingestion, deployment, connector, and test scripts. |
 | `copilot/` | Reusable Copilot Studio action and connection-reference templates. |
 | `prompts/` | Reusable Copilot Studio and Foundry reasoning prompts. |
 | `docs/` | Architecture, processing pipeline, Copilot setup, and troubleshooting notes. |
+| `assets/` | Intro slide deck and preview image for workshop/lab setup. |
 
 ## Prerequisites
 

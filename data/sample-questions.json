@@ -1,0 +1,28 @@
+[
+  {
+    "category": "permit readiness",
+    "question": "What documentation would a municipality require before approving this solar project?",
+    "expectedEvidence": ["permit application template", "permitting checklist", "submittal requirements"]
+  },
+  {
+    "category": "visual retrieval",
+    "question": "Show me diagrams related to solar interconnection or approval workflow.",
+    "expectedEvidence": ["rendered PDF pages", "electrical diagrams", "workflow diagrams"]
+  },
+  {
+    "category": "checklists",
+    "question": "Find all permitting checklists and summarize the required steps.",
+    "expectedEvidence": ["checklist documents", "OCR from rendered pages", "source guide pages"]
+  },
+  {
+    "category": "document comparison",
+    "question": "Compare this permit application template against the California permitting guide.",
+    "expectedEvidence": ["template fields", "guide requirements", "missing or mismatched fields"]
+  },
+  {
+    "category": "fees and timelines",
+    "question": "Find visuals or tables that explain fees, timelines, or zoning constraints.",
+    "expectedEvidence": ["tables", "fees memo", "zoning guidance", "page-render OCR"]
+  }
+]
+
