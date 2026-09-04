@@ -30,6 +30,8 @@ The current reference run produced:
 
 The public corpus source list is included under `data/document-index.csv`. The lab bootstrap script downloads those public documents and uploads them into your SharePoint document library before ingestion.
 
+**Full lab guide:** [RECCIA Lab Guide](docs/RECCIA-Lab-Guide.docx) provides the end-to-end implementation walkthrough, validation checklist, troubleshooting matrix, and sign-off template.
+
 ## Repo layout
 
 | Path | Purpose |
@@ -44,6 +46,7 @@ The public corpus source list is included under `data/document-index.csv`. The l
 | `copilot/` | Reusable Copilot Studio action and connection-reference templates. |
 | `prompts/` | Reusable Copilot Studio and Foundry reasoning prompts. |
 | `docs/` | Architecture, processing pipeline, Copilot setup, and troubleshooting notes. |
+| `docs/RECCIA-Lab-Guide.docx` | Complete 40-page instructor-style implementation lab guide. |
 | `assets/` | Intro slide deck and preview image for workshop/lab setup. |
 
 ## Prerequisites
@@ -119,6 +122,125 @@ Then register the Copilot Studio custom connector:
   -EnvironmentId "<environment-id>" `
   -BotSchemaName "reccia_RenewableComplianceReviewer"
 ```
+
+## Manual deployment
+
+Use this path when you want to deploy the lab step by step instead of running the whole setup as a single workshop flow.
+
+1. **Clone and prepare the repo.**
+
+   ```powershell
+   git clone https://github.com/spetren/renewable-energy-compliance-lab.git
+   cd renewable-energy-compliance-lab
+   python -m venv .venv
+   .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+   Copy-Item .env.example .env
+   ```
+
+2. **Create the Azure resource group and deploy the Bicep template.**
+
+   ```powershell
+   $subscriptionId = "<subscription-id>"
+   $resourceGroupName = "rg-reccia-lab"
+   $location = "eastus"
+   $namePrefix = "reccia"
+
+   az account set --subscription $subscriptionId
+   az group create --name $resourceGroupName --location $location
+   az deployment group create `
+     --resource-group $resourceGroupName `
+     --template-file infra\main.bicep `
+     --parameters `
+       namePrefix=$namePrefix `
+       location=$location `
+       openAIDeploymentName="gpt-4.1-mini" `
+       openAIModelName="gpt-4.1-mini" `
+       openAIModelVersion="2025-04-14"
+   ```
+
+   Record the generated Search, Document Intelligence, Vision, Azure OpenAI, Storage, and Function App names in `.env` and Appendix A of the lab guide.
+
+3. **Prepare SharePoint for the corpus.**
+
+   Create or choose a SharePoint document library, create a `Source Documents` folder, and resolve the library's Microsoft Graph drive ID. Then either upload your own renewable-energy PDFs/DOCX files manually or bootstrap the public corpus from `data\document-index.csv`:
+
+   ```powershell
+   .\scripts\bootstrap-sharepoint-corpus.ps1 `
+     -SubscriptionId $subscriptionId `
+     -DriveId "<sharepoint-drive-id>" `
+     -DocumentIndexPath "data\document-index.csv" `
+     -SourceFolder "Source Documents"
+   ```
+
+4. **Run text ingestion.**
+
+   ```powershell
+   .\scripts\run-text-ingestion.ps1 `
+     -SubscriptionId $subscriptionId `
+     -ResourceGroupName $resourceGroupName `
+     -SearchServiceName "<search-service>" `
+     -DocumentIntelligenceAccountName "<doc-intel-account>" `
+     -DriveId "<sharepoint-drive-id>"
+   ```
+
+   Continue only after `reccia-documents` has a non-zero document count and Search explorer returns cited text results.
+
+5. **Run visual evidence extraction.**
+
+   ```powershell
+   .\scripts\run-image-extraction.ps1 `
+     -SubscriptionId $subscriptionId `
+     -ResourceGroupName $resourceGroupName `
+     -SearchServiceName "<search-service>" `
+     -VisionAccountName "<vision-account>" `
+     -DriveId "<sharepoint-drive-id>" `
+     -RenderPages `
+     -SkipExistingIndexed
+   ```
+
+   Use `-SkipExistingIndexed` on every retry so interrupted long runs resume without reprocessing completed images.
+
+6. **Deploy and test the reasoning API.**
+
+   ```powershell
+   .\scripts\deploy-function-api.ps1 `
+     -SubscriptionId $subscriptionId `
+     -ResourceGroupName $resourceGroupName `
+     -FunctionAppName "<function-app>" `
+     -StorageAccountName "<storage-account>" `
+     -SearchServiceName "<search-service>" `
+     -OpenAIAccountName "<openai-account>" `
+     -OpenAIDeploymentName "gpt-4.1-mini"
+
+   .\scripts\test-reccia-api.ps1 `
+     -SubscriptionId $subscriptionId `
+     -ResourceGroupName $resourceGroupName `
+     -FunctionAppName "<function-app>"
+   ```
+
+   The test should return `reasoningMode: foundry`, a populated answer, and document or image citations.
+
+7. **Register the Copilot Studio connector and action.**
+
+   ```powershell
+   .\scripts\register-copilot-action.ps1 `
+     -SubscriptionId $subscriptionId `
+     -ResourceGroupName $resourceGroupName `
+     -FunctionAppName "<function-app>" `
+     -EnvironmentUrl "https://<org>.crm.dynamics.com/" `
+     -EnvironmentId "<environment-id>" `
+     -BotSchemaName "reccia_RenewableComplianceReviewer"
+   ```
+
+   Confirm the Power Platform connection is `Connected` and the Dataverse connection reference has `connectionid` populated.
+
+8. **Create, configure, and publish the Copilot Studio agent.**
+
+   Create or clone the agent named `Renewable Compliance Reviewer`, add the `SearchKnowledge` action from `copilot\actions`, paste the instructions from `prompts\copilot-agent-instructions.md`, set `gptCapabilities.webBrowsing: false`, then push and publish with `pac copilot`.
+
+9. **Validate the deployment.**
+
+   In the Copilot Studio test pane, run the prompts in the **Demo prompts** section. Text answers should cite source documents and pages. Visual answers should return normal `[View diagram](url)` links, not inline image Markdown.
 
 ## Demo prompts
 
