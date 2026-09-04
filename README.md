@@ -57,6 +57,21 @@ The public corpus source list is included under `data/document-index.csv`. The l
 4. Power Apps maker/admin access to the target Dataverse environment.
 5. A SharePoint document library folder containing PDF/DOCX/PPTX source documents.
 
+## Azure resources and purpose
+
+The Bicep template deploys these resources because each one owns a specific part of the RECCIA pipeline:
+
+| Resource | Why it is deployed |
+| --- | --- |
+| Azure AI Search | Stores and queries the two retrieval indexes: `reccia-documents` for text chunks and `reccia-images` for visual evidence. |
+| Azure AI Document Intelligence | Extracts layout-aware text from PDF and DOCX source documents so the content can be chunked and indexed for retrieval. |
+| Azure AI Vision | Captions, OCRs, and tags extracted images, rendered PDF pages, diagrams, checklists, and tables before they are indexed. |
+| Azure OpenAI account and chat model deployment | Synthesizes grounded answers from the retrieved text and visual evidence using the configured chat model, such as `gpt-4.1-mini`. |
+| Storage account for Azure Functions | Provides the Function App runtime storage used for triggers, host state, deployment packages, and execution metadata. |
+| Application Insights | Captures Function telemetry, failures, latency, and traces so the reasoning API can be diagnosed during lab runs. |
+| Linux Azure Function App | Hosts the `askRenewableCompliance` HTTP API that queries both Search indexes, calls Azure OpenAI, and returns cited answers to Copilot Studio. |
+| Managed identity role assignment for the Function App to call Azure OpenAI | Lets the Function call Azure OpenAI with Entra identity instead of embedding Azure OpenAI keys in code or app settings. |
+
 ## Quickstart
 
 ```powershell
