@@ -1,4 +1,6 @@
-# Renewable Compliance Reviewer lab
+# Renewable Energy Compliance Lab
+
+**RECCIA** stands for **Renewable Energy Contract and Compliance Intelligence Agent**. The RECCIA lab shows how to build a Copilot Studio agent that can answer renewable-energy permitting, zoning, interconnection, contracting, and compliance questions from both document text and extracted visual evidence.
 
 This repo packages a repeatable lab for a multimodal renewable-energy compliance agent. It ingests SharePoint documents, extracts text and visual evidence, indexes both in Azure AI Search, reasons over the evidence with Azure OpenAI in Foundry, and exposes the result as a Copilot Studio custom connector action.
 
@@ -26,7 +28,7 @@ The current reference run produced:
 | Indexed visual records | 1,908 |
 | Azure AI Vision successes | 1,630 |
 
-The source documents and extracted images are not committed to this repo. They stay in SharePoint.
+The public corpus source list is included under `data/document-index.csv`. The lab bootstrap script downloads those public documents and uploads them into your SharePoint document library before ingestion.
 
 ## Repo layout
 
@@ -34,7 +36,8 @@ The source documents and extracted images are not committed to this repo. They s
 | --- | --- |
 | `ingest_sharepoint_to_search.py` | Pulls SharePoint files, extracts/OCRs text, chunks content, and indexes text into Azure AI Search. |
 | `extract_images_to_search.py` | Extracts embedded PDF/DOCX/PPTX images, renders PDF pages, uploads image assets to SharePoint, runs Vision caption/OCR, and indexes visual records. |
-| `data/` | Visible lab data layout, reference corpus manifest, source/extracted placeholders, and sample reasoning questions. |
+| `data/` | Corpus source index, reference manifest, source/extracted placeholders, and sample reasoning questions. |
+| `infra/` | Bicep template for Azure AI Search, Document Intelligence, Vision, Azure OpenAI, Storage, Application Insights, and Azure Functions. |
 | `reccia-agent-api/` | Azure Function HTTP API that queries both Search indexes and calls Azure OpenAI for grounded reasoning. |
 | `reccia-agent-api/connector/` | Swagger 2.0 and connector properties for Copilot Studio / Power Platform custom connector import. |
 | `scripts/` | Parameterized setup, ingestion, deployment, connector, and test scripts. |
@@ -62,6 +65,17 @@ python -m venv .venv
   -ResourceGroupName "rg-reccia-graph-ingestion" `
   -Location "eastus" `
   -NamePrefix "reccia"
+```
+
+The deployment script uses `infra\main.bicep` to create the required Azure resources.
+
+```powershell
+
+.\scripts\bootstrap-sharepoint-corpus.ps1 `
+  -SubscriptionId "<subscription-id>" `
+  -DriveId "<sharepoint-drive-id>" `
+  -DocumentIndexPath "data\document-index.csv" `
+  -SourceFolder "Source Documents"
 
 .\scripts\run-text-ingestion.ps1 `
   -SubscriptionId "<subscription-id>" `

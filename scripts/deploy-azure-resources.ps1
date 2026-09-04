@@ -13,8 +13,27 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+$repo = Split-Path -Parent $PSScriptRoot
 az account set --subscription $SubscriptionId
 az group create --name $ResourceGroupName --location $Location | Out-Null
+
+$bicepPath = Join-Path $repo "infra\main.bicep"
+if (Test-Path $bicepPath) {
+  az deployment group create `
+    --resource-group $ResourceGroupName `
+    --template-file $bicepPath `
+    --parameters `
+      namePrefix=$NamePrefix `
+      location=$Location `
+      searchServiceName=$SearchServiceName `
+      documentIntelligenceAccountName=$DocumentIntelligenceAccountName `
+      visionAccountName=$VisionAccountName `
+      openAIAccountName=$OpenAIAccountName `
+      openAIDeploymentName=$OpenAIDeploymentName `
+      openAIModelName=$OpenAIModelName `
+      openAIModelVersion=$OpenAIModelVersion
+  exit $LASTEXITCODE
+}
 
 if (-not $SearchServiceName) { $SearchServiceName = "$NamePrefix-search-$((New-Guid).Guid.Substring(0, 6))" }
 if (-not $DocumentIntelligenceAccountName) { $DocumentIntelligenceAccountName = "$NamePrefix-docintel-$((New-Guid).Guid.Substring(0, 6))" }
@@ -86,4 +105,3 @@ if (-not (az cognitiveservices account deployment list --resource-group $Resourc
   openAIAccount = $OpenAIAccountName
   openAIDeployment = $OpenAIDeploymentName
 } | ConvertTo-Json
-

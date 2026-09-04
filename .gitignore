@@ -19,6 +19,17 @@ dist/
 build/
 *.zip
 
+# Local corpus cache generated from data/document-index.csv
+data/source-documents/*
+!data/source-documents/.gitkeep
+data/extracted-images/*
+!data/extracted-images/.gitkeep
+data/download-summary.json
+data/bootstrap-summary.json
+
+# Bicep build output
+infra/main.json
+
 # Local Copilot Studio sync metadata and environment-specific workspaces
 reccia-copilot-agent/
 reccia-copilot-synced/
@@ -31,4 +42,3 @@ reccia-agent-web/
 *.log
 *.tmp
 *.bak
-
