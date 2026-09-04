@@ -1,0 +1,34 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+
+# Node/session tooling
+node_modules/
+package-lock.json
+
+# Local settings and secrets
+.env
+*.local.json
+local.settings.json
+*.publishsettings
+
+# Build and generated artifacts
+out/
+dist/
+build/
+*.zip
+
+# Local Copilot Studio sync metadata and environment-specific workspaces
+reccia-copilot-agent/
+reccia-copilot-synced/
+reccia-agent-api/connector-downloaded/
+
+# Alternate prototype host not used by the lab
+reccia-agent-web/
+
+# Logs and temp output
+*.log
+*.tmp
+*.bak
+
