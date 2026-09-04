@@ -32,13 +32,15 @@ The public corpus source list is included under `data/document-index.csv`. The l
 
 **Full lab guide:** [RECCIA Lab Guide](docs/RECCIA-Lab-Guide.docx) provides the end-to-end implementation walkthrough, validation checklist, troubleshooting matrix, and sign-off template.
 
+**90-minute legal/compliance path:** [90-minute legal/compliance lab](docs/90-minute-legal-compliance-lab.md) uses a curated six-document corpus and a shorter agenda focused on contracting, interconnection, permit-readiness, and compliance guardrails.
+
 ## Repo layout
 
 | Path | Purpose |
 | --- | --- |
 | `ingest_sharepoint_to_search.py` | Pulls SharePoint files, extracts/OCRs text, chunks content, and indexes text into Azure AI Search. |
 | `extract_images_to_search.py` | Extracts embedded PDF/DOCX/PPTX images, renders PDF pages, uploads image assets to SharePoint, runs Vision caption/OCR, and indexes visual records. |
-| `data/` | Corpus source index, reference manifest, source/extracted placeholders, and sample reasoning questions. |
+| `data/` | Full corpus source index, 90-minute legal/compliance subset, reference manifest, source/extracted placeholders, and sample reasoning questions. |
 | `infra/` | Bicep template for Azure AI Search, Document Intelligence, Vision, Azure OpenAI, Storage, Application Insights, and Azure Functions. |
 | `reccia-agent-api/` | Azure Function HTTP API that queries both Search indexes and calls Azure OpenAI for grounded reasoning. |
 | `reccia-agent-api/connector/` | Swagger 2.0 and connector properties for Copilot Studio / Power Platform custom connector import. |
@@ -46,6 +48,7 @@ The public corpus source list is included under `data/document-index.csv`. The l
 | `copilot/` | Reusable Copilot Studio action and connection-reference templates. |
 | `prompts/` | Reusable Copilot Studio and Foundry reasoning prompts. |
 | `docs/` | Architecture, processing pipeline, Copilot setup, and troubleshooting notes. |
+| `docs/90-minute-legal-compliance-lab.md` | Short-form lab path with curated legal/compliance corpus, timing, commands, and evaluation prompts. |
 | `docs/RECCIA-Lab-Guide.docx` | Complete 40-page instructor-style implementation lab guide. |
 | `assets/` | Intro slide deck and preview image for workshop/lab setup. |
 
@@ -86,6 +89,8 @@ python -m venv .venv
 ```
 
 The deployment script uses `infra\main.bicep` to create the required Azure resources.
+
+For a 90-minute legal/compliance-focused delivery, follow the reduced-corpus path in [docs/90-minute-legal-compliance-lab.md](docs/90-minute-legal-compliance-lab.md) instead of the full quickstart below.
 
 ```powershell
 

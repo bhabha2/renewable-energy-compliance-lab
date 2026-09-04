@@ -22,8 +22,10 @@ build/
 # Local corpus cache generated from data/document-index.csv
 data/source-documents/*
 !data/source-documents/.gitkeep
+data/source-documents-*/*
 data/extracted-images/*
 !data/extracted-images/.gitkeep
+data/extracted-images-*/*
 data/download-summary.json
 data/bootstrap-summary.json
 

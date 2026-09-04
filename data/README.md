@@ -11,8 +11,10 @@ The reference implementation processed source documents from SharePoint and wrot
 | `source-documents/` | Local cache populated by `scripts\bootstrap-sharepoint-corpus.ps1`; ignored by git except for `.gitkeep`. |
 | `extracted-images/` | Optional local cache for visual assets; ignored by git except for `.gitkeep`. |
 | `document-index.csv` | Source reference for the legal/requirements documents, including publisher/source URL and download status. |
+| `document-index-legal-compliance-90min.csv` | Six-document legal/compliance subset for a 90-minute lab. |
 | `reference-corpus.csv` | The corpus used in the reference run, listed as filenames and document roles. |
 | `sample-questions.json` | Lab prompts that exercise text retrieval, visual retrieval, and Foundry reasoning. |
+| `sample-questions-legal-compliance-90min.json` | Focused evaluation prompts for the 90-minute legal/compliance lab. |
 
 ## Reference run counts
 
@@ -29,3 +31,5 @@ The reference implementation processed source documents from SharePoint and wrot
 ## Source file note
 
 The source PDFs, Word documents, rendered pages, and extracted images are generated or cached during the lab. Commit the source index and scripts, not the generated binary corpus.
+
+For a shorter legal/compliance delivery, use `document-index-legal-compliance-90min.csv` with `scripts\bootstrap-sharepoint-corpus.ps1 -DocumentIndexPath "data\document-index-legal-compliance-90min.csv"` and point the ingestion scripts at the same isolated SharePoint source folder.
