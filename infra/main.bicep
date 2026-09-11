@@ -58,7 +58,7 @@ param imageIndexName string = 'reccia-images'
 
 var suffix = toLower(take(uniqueString(resourceGroup().id), 6))
 var searchName = empty(searchServiceName) ? '${namePrefix}-search-${suffix}' : searchServiceName
-var docIntelName = empty(documentIntelligenceAccountName) ? '${namePrefix}-docintel-${suffix}' : documentIntelligenceAccountName
+var docIntelName = empty(documentIntelligenceAccountName) ? '${namePrefix}-docintelrg-reccia-lab-${suffix}' : documentIntelligenceAccountName
 var visionName = empty(visionAccountName) ? '${namePrefix}-vision-${suffix}' : visionAccountName
 var openAIName = empty(openAIAccountName) ? '${namePrefix}-openai-${suffix}' : openAIAccountName
 var functionName = empty(functionAppName) ? '${namePrefix}-agent-api-${suffix}' : functionAppName
