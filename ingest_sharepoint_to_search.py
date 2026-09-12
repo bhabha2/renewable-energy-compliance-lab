@@ -83,9 +83,8 @@ def get_cli_token(resource: str) -> str:
     )
 
 
-def get_interactive_graph_token(tenant_id: str, client_id: str) -> str:
+def get_interactive_graph_token(tenant_id: str, client_id: str, scopes: list[str]) -> str:
     authority = f"https://login.microsoftonline.com/{tenant_id}"
-    scopes = ["Files.ReadWrite.All", "Sites.ReadWrite.All"]
     app = msal.PublicClientApplication(client_id=client_id, authority=authority)
     accounts = app.get_accounts()
     result = app.acquire_token_silent(scopes, account=accounts[0]) if accounts else None
@@ -510,7 +509,11 @@ def main() -> int:
  
     run_az(["account", "set", "--subscription", args.subscription])
  
-    graph_token = get_interactive_graph_token(args.tenant_id, args.graph_client_id)
+    graph_token = get_interactive_graph_token(
+        args.tenant_id,
+        args.graph_client_id,
+        scopes=["Files.Read.All"],
+    )
     search_endpoint = f"https://{args.search_service}.search.windows.net"
     search_key = run_az(
         [

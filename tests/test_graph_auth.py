@@ -16,7 +16,11 @@ class InteractiveGraphTokenTests(unittest.TestCase):
         app.acquire_token_by_device_flow.return_value = {"access_token": "graph-token"}
         mock_application.return_value = app
 
-        token = ingest_sharepoint_to_search.get_interactive_graph_token("tenant", "client")
+        token = ingest_sharepoint_to_search.get_interactive_graph_token(
+            "tenant",
+            "client",
+            scopes=["Files.Read.All"],
+        )
 
         self.assertEqual(token, "graph-token")
         mock_application.assert_called_once_with(
@@ -24,7 +28,7 @@ class InteractiveGraphTokenTests(unittest.TestCase):
             authority="https://login.microsoftonline.com/tenant",
         )
         app.initiate_device_flow.assert_called_once_with(
-            scopes=["Files.ReadWrite.All", "Sites.ReadWrite.All"]
+            scopes=["Files.Read.All"]
         )
 
 

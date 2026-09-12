@@ -59,6 +59,7 @@ The public corpus source list is included under `data/document-index.csv`. The l
 3. Power Platform CLI (`pac`) for Copilot Studio agent and custom connector operations.
 4. Power Apps maker/admin access to the target Dataverse environment.
 5. A SharePoint document library folder containing PDF/DOCX/PPTX source documents.
+6. Permission to create a Microsoft Entra app registration in the tenant that owns the SharePoint library, or help from a tenant administrator.
 
 ## Azure resources and purpose
 
@@ -90,6 +91,16 @@ python -m venv .venv
 
 The deployment script uses `infra\main.bicep` to create the required Azure resources.
 
+Register the public Microsoft Graph client used for delegated SharePoint access. The script verifies that the subscription belongs to the supplied tenant before creating anything:
+
+```powershell
+.\scripts\register-graph-client.ps1 `
+  -TenantId "<demo-tenant-id>" `
+  -SubscriptionId "<subscription-id>"
+```
+
+Record the returned `graphClientId`. See [Microsoft Graph app registration](docs/graph-app-registration.md) for the step-by-step portal alternative and tenant-consent guidance.
+
 For a 90-minute legal/compliance-focused delivery, follow the reduced-corpus path in [docs/90-minute-legal-compliance-lab.md](docs/90-minute-legal-compliance-lab.md) instead of the full quickstart below.
 
 ```powershell
@@ -102,6 +113,8 @@ For a 90-minute legal/compliance-focused delivery, follow the reduced-corpus pat
 
 .\scripts\run-text-ingestion.ps1 `
   -SubscriptionId "<subscription-id>" `
+  -TenantId "<demo-tenant-id>" `
+  -GraphClientId "<graph-client-id>" `
   -ResourceGroupName "rg-reccia-graph-ingestion" `
   -SearchServiceName "<search-service>" `
   -DocumentIntelligenceAccountName "<doc-intel-account>" `
@@ -109,6 +122,8 @@ For a 90-minute legal/compliance-focused delivery, follow the reduced-corpus pat
 
 .\scripts\run-image-extraction.ps1 `
   -SubscriptionId "<subscription-id>" `
+  -TenantId "<demo-tenant-id>" `
+  -GraphClientId "<graph-client-id>" `
   -ResourceGroupName "rg-reccia-graph-ingestion" `
   -SearchServiceName "<search-service>" `
   -VisionAccountName "<vision-account>" `
@@ -161,6 +176,7 @@ Use this path when you want to deploy the lab step by step instead of running th
 
    ```powershell
    $subscriptionId = "<subscription-id>"
+  $tenantId = "<demo-tenant-id>"
    $resourceGroupName = "rg-reccia-lab"
    $location = "eastus"
    $namePrefix = "reccia"
@@ -180,7 +196,18 @@ Use this path when you want to deploy the lab step by step instead of running th
 
    Record the generated Search, Document Intelligence, Vision, Azure OpenAI, Storage, and Function App names in `.env` and Appendix A of the lab guide.
 
-3. **Prepare SharePoint for the corpus.**
+3. **Register the Microsoft Graph public client.**
+
+   ```powershell
+   $graphRegistration = .\scripts\register-graph-client.ps1 `
+     -TenantId $tenantId `
+     -SubscriptionId $subscriptionId | ConvertFrom-Json
+   $graphClientId = $graphRegistration.graphClientId
+   ```
+
+   This registration uses delegated device-code authentication and does not require a client secret. For a portal walkthrough, see [Microsoft Graph app registration](docs/graph-app-registration.md).
+
+4. **Prepare SharePoint for the corpus.**
 
    Create or choose a SharePoint document library, create a `Source Documents` folder, and resolve the library's Microsoft Graph drive ID. Then either upload your own renewable-energy PDFs/DOCX files manually or bootstrap the public corpus from `data\document-index.csv`:
 
@@ -192,11 +219,13 @@ Use this path when you want to deploy the lab step by step instead of running th
      -SourceFolder "Source Documents"
    ```
 
-4. **Run text ingestion.**
+5. **Run text ingestion.**
 
    ```powershell
    .\scripts\run-text-ingestion.ps1 `
      -SubscriptionId $subscriptionId `
+     -TenantId $tenantId `
+     -GraphClientId $graphClientId `
      -ResourceGroupName $resourceGroupName `
      -SearchServiceName "<search-service>" `
      -DocumentIntelligenceAccountName "<doc-intel-account>" `
@@ -205,11 +234,13 @@ Use this path when you want to deploy the lab step by step instead of running th
 
    Continue only after `reccia-documents` has a non-zero document count and Search explorer returns cited text results.
 
-5. **Run visual evidence extraction.**
+6. **Run visual evidence extraction.**
 
    ```powershell
    .\scripts\run-image-extraction.ps1 `
      -SubscriptionId $subscriptionId `
+     -TenantId $tenantId `
+     -GraphClientId $graphClientId `
      -ResourceGroupName $resourceGroupName `
      -SearchServiceName "<search-service>" `
      -VisionAccountName "<vision-account>" `
@@ -220,7 +251,7 @@ Use this path when you want to deploy the lab step by step instead of running th
 
    Use `-SkipExistingIndexed` on every retry so interrupted long runs resume without reprocessing completed images.
 
-6. **Deploy and test the reasoning API.**
+7. **Deploy and test the reasoning API.**
 
    ```powershell
    .\scripts\deploy-function-api.ps1 `
@@ -240,7 +271,7 @@ Use this path when you want to deploy the lab step by step instead of running th
 
    The test should return `reasoningMode: foundry`, a populated answer, and document or image citations.
 
-7. **Register the Copilot Studio connector and action.**
+8. **Register the Copilot Studio connector and action.**
 
    ```powershell
    .\scripts\register-copilot-action.ps1 `
@@ -254,11 +285,11 @@ Use this path when you want to deploy the lab step by step instead of running th
 
    Confirm the Power Platform connection is `Connected` and the Dataverse connection reference has `connectionid` populated.
 
-8. **Create, configure, and publish the Copilot Studio agent.**
+9. **Create, configure, and publish the Copilot Studio agent.**
 
    Create or clone the agent named `Renewable Compliance Reviewer`, add the `SearchKnowledge` action from `copilot\actions`, paste the instructions from `prompts\copilot-agent-instructions.md`, set `gptCapabilities.webBrowsing: false`, then push and publish with `pac copilot`.
 
-9. **Validate the deployment.**
+10. **Validate the deployment.**
 
    In the Copilot Studio test pane, run the prompts in the **Demo prompts** section. Text answers should cite source documents and pages. Visual answers should return normal `[View diagram](url)` links, not inline image Markdown.
 

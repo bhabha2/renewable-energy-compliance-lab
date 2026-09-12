@@ -49,10 +49,20 @@ Set common variables:
 
 ```powershell
 $subscriptionId = "<subscription-id>"
+$tenantId = "<demo-tenant-id>"
 $resourceGroupName = "rg-reccia-lab"
 $driveId = "<sharepoint-drive-id>"
 $sourceFolder = "Source Documents - Legal Compliance 90min"
 $imagesFolder = "Extracted Images - Legal Compliance 90min"
+```
+
+Create or validate the Microsoft Graph public client before ingestion:
+
+```powershell
+$graphRegistration = .\scripts\register-graph-client.ps1 `
+  -TenantId $tenantId `
+  -SubscriptionId $subscriptionId | ConvertFrom-Json
+$graphClientId = $graphRegistration.graphClientId
 ```
 
 Bootstrap only the curated legal/compliance corpus:
@@ -71,6 +81,8 @@ Run text ingestion against that isolated SharePoint folder:
 ```powershell
 .\scripts\run-text-ingestion.ps1 `
   -SubscriptionId $subscriptionId `
+  -TenantId $tenantId `
+  -GraphClientId $graphClientId `
   -ResourceGroupName $resourceGroupName `
   -SearchServiceName "<search-service>" `
   -DocumentIntelligenceAccountName "<doc-intel-account>" `
@@ -83,6 +95,8 @@ Run targeted visual extraction:
 ```powershell
 .\scripts\run-image-extraction.ps1 `
   -SubscriptionId $subscriptionId `
+  -TenantId $tenantId `
+  -GraphClientId $graphClientId `
   -ResourceGroupName $resourceGroupName `
   -SearchServiceName "<search-service>" `
   -VisionAccountName "<vision-account>" `

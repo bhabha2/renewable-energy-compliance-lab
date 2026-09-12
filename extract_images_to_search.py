@@ -627,7 +627,11 @@ def main() -> int:
     args = parser.parse_args()
 
     run_az(["account", "set", "--subscription", args.subscription])
-    graph_token = get_interactive_graph_token(args.tenant_id, args.graph_client_id)
+    graph_token = get_interactive_graph_token(
+        args.tenant_id,
+        args.graph_client_id,
+        scopes=["Files.ReadWrite.All"],
+    )
     search_key = run_az(
         [
             "search",
