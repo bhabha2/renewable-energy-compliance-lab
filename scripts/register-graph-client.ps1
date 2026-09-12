@@ -9,7 +9,7 @@ param(
 $ErrorActionPreference = "Stop"
 $graphResourceAppId = "00000003-0000-0000-c000-000000000000"
 $permissions = @(
-  @{ Name = "Files.Read.All"; Id = "df021288-bdef-4463-88db-98f22de89214" },
+  @{ Name = "Files.Read.All"; Id = "df85f4d6-205c-4ac5-a5ea-6bf408dba283" },
   @{ Name = "Files.ReadWrite.All"; Id = "863451e7-0667-486c-a5d6-d135439485f0" }
 )
 
