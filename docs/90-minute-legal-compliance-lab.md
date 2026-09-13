@@ -56,6 +56,15 @@ $sourceFolder = "Source Documents - Legal Compliance 90min"
 $imagesFolder = "Extracted Images - Legal Compliance 90min"
 ```
 
+Before creating or pre-staging the Azure resource group, find the first region that supports both Flex Consumption and the configured Azure OpenAI model version:
+
+```powershell
+.\scripts\find-deployment-regions.ps1 `
+  -SubscriptionId $subscriptionId
+```
+
+The script tries common US regions first and stops at the first match. Use the returned region for the Azure deployment `-Location` value.
+
 Create or validate the Microsoft Graph public client before ingestion:
 
 ```powershell

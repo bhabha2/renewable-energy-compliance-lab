@@ -61,6 +61,29 @@ The public corpus source list is included under `data/document-index.csv`. The l
 5. A SharePoint document library folder containing PDF/DOCX/PPTX source documents.
 6. Permission to create a Microsoft Entra app registration in the tenant that owns the SharePoint library, or help from a tenant administrator.
 
+Before creating the resource group, find the first region that supports both Azure Functions Flex Consumption and the configured Azure OpenAI model version:
+
+```powershell
+.\scripts\find-deployment-regions.ps1 `
+  -SubscriptionId "<subscription-id>"
+```
+
+By default, the script tries common US regions first and stops at the first match. To control the search order, add `-Regions northcentralus,eastus`. Use the returned region for `-Location` in the deployment commands. The model check confirms catalog availability, not deployment capacity or quota.
+
+This lab deploys the Azure Function on Flex Consumption (`FC1`). It does not deploy the legacy Dynamic Consumption (`Y1`) plan, so Y1 quota is not part of this precheck.
+
+Register the Log Analytics provider required by Application Insights:
+
+```powershell
+az provider register --namespace Microsoft.OperationalInsights
+az provider show `
+  --namespace Microsoft.OperationalInsights `
+  --query registrationState `
+  --output tsv
+```
+
+Continue only after the provider status is `Registered`.
+
 ## Azure resources and purpose
 
 The Bicep template deploys these resources because each one owns a specific part of the RECCIA pipeline:
@@ -82,14 +105,16 @@ The Bicep template deploys these resources because each one owns a specific part
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
 
+.\scripts\find-deployment-regions.ps1 `
+  -SubscriptionId "<subscription-id>"
+
 .\scripts\deploy-azure-resources.ps1 `
   -SubscriptionId "<subscription-id>" `
   -ResourceGroupName "rg-reccia-graph-ingestion" `
-  -Location "eastus" `
   -NamePrefix "reccia"
 ```
 
-The deployment script uses `infra\main.bicep` to create the required Azure resources.
+The deployment script selects the first eligible region before creating the resource group. To require a specific region, pass `-Location`; the script validates that region first. It then uses `infra\main.bicep` to create the required Azure resources.
 
 Register the public Microsoft Graph client used for delegated SharePoint access. The script verifies that the subscription belongs to the supplied tenant before creating anything:
 
@@ -172,14 +197,17 @@ Use this path when you want to deploy the lab step by step instead of running th
    Copy-Item .env.example .env
    ```
 
-2. **Create the Azure resource group and deploy the Bicep template.**
+2. **Find an eligible region, create the Azure resource group, and deploy the Bicep template.**
 
    ```powershell
    $subscriptionId = "<subscription-id>"
-  $tenantId = "<demo-tenant-id>"
+   $tenantId = "<demo-tenant-id>"
    $resourceGroupName = "rg-reccia-lab"
-   $location = "eastus"
+   $location = "<eligible-region>"
    $namePrefix = "reccia"
+
+   .\scripts\find-deployment-regions.ps1 `
+     -SubscriptionId $subscriptionId
 
    az account set --subscription $subscriptionId
    az group create --name $resourceGroupName --location $location
